@@ -79,5 +79,7 @@ Dir.glob(File.join(source, "**/*")).each do |maybe_file|
 
   binding.pry
 
+  # TODO: writing doesn't actually the image?
+  # TODO: maybe cached by spotlight?
   update_exif_data(new_file, timestamp)
 end
