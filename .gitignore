@@ -52,3 +52,4 @@ build-iPhoneSimulator/
 images/
 photos.db
 *.sql
+*.md.temp
