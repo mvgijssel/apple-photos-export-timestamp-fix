@@ -33,5 +33,5 @@ $ cp ~/Pictures/'Photos Library.photoslibrary' ~/Desktop/apple-photos-export-tim
 4. Run this script
 ```
 cd  ~/Desktop/apple-photos-export-timestamp-fix
-$ fix_my_timestamps images/ fixed_images/
+$ ./fix_my_timestamps.rb images/ fixed_images/ library
 ```
