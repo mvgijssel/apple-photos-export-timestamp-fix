@@ -6,9 +6,8 @@ sometimes you're not that lucky and the one and only date is wrong.
 
 | Info Apple Photos  |  Info Finder |
 | ------------- | ------------- |
-| <img src="./details-apple-photos.png" alt="Details Apple Photos" /> | <img src="./details-apple-finder.png" alt="Details Finder" />
-  |
-  
+| <img src="./details-apple-photos.png" alt="Details Apple Photos" /> | <img src="./details-apple-finder.png" alt="Details Finder" /> |
+
 ---
 
 This script fixes these cases by copying the time information from Apple Photos 
