@@ -58,3 +58,6 @@ fixed_images/*
 photos.db
 *.sql
 *.md.temp
+*.db-shm
+*.db-wal
+*.swp
