@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
-require 'mini_exiftool'
 require 'sqlite3'
 require 'pathname'
+require 'fileutils'
+require 'open3'
+require 'mini_exiftool'
 
 if ARGV.length != 3
   puts "Please provide three arguments: `fix_my_timestamps src/ dest/ library`"
@@ -37,11 +39,15 @@ def new_file_name(filename, source, dest)
 end
 
 def update_exif_data(file, timestamp)
-  photo = MiniExiftool.new(file)
-  photo['FileModifyDate'] = timestamp
+  command = <<~CMD
+    exiftool #{file} -filemodifydate="#{timestamp}" -P -overwrite_original
+  CMD
 
-  unless photo.save
-    puts "[WARNING] EXIF saving had errors for photo `#{file}`: #{photo.errors.inspect}"
+  # puts command
+  output, status = Open3.capture2e(command)
+
+  unless status.exitstatus == 0
+    puts "[WARNING] EXIF saving had errors for photo `#{file}`: #{output}"
   end
 end
 
@@ -69,17 +75,15 @@ Dir.glob(File.join(source, "**/*")).each do |maybe_file|
 
   data = data.first
 
-  timestamp = Time.parse(data.fetch('date'))
-
-  require 'pry'
+  timestamp = Time.parse("#{data.fetch('date')} UTC").getlocal
 
   new_file = new_file_name(file, source, dest)
   FileUtils.mkdir_p(File.dirname(new_file))
-  FileUtils.cp_r(file, new_file, remove_destination: true, verbose: true)
+  FileUtils.cp_r(file, new_file, remove_destination: true, verbose: false)
 
-  binding.pry
+  photo = MiniExiftool.new(new_file)
 
-  # TODO: writing doesn't actually the image?
-  # TODO: maybe cached by spotlight?
+  puts "Updating `#{new_file}` from `#{photo.filemodifydate}` to `#{timestamp}`"
+
   update_exif_data(new_file, timestamp)
 end
