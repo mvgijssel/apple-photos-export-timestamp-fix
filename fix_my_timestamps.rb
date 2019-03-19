@@ -5,6 +5,8 @@ require 'pathname'
 require 'fileutils'
 require 'open3'
 require 'mini_exiftool'
+require 'ruby-progressbar'
+
 
 if ARGV.length != 3
   puts "Please provide three arguments: `fix_my_timestamps src/ dest/ library`"
@@ -13,6 +15,10 @@ end
 
 def data_from_library(database, file)
   base_file = File.basename(file)
+
+  # TODO: from the file AND the timestamp get the data
+  # multiple photos can have the same name so they will exported in finder as
+  # IMG (0), IMG (1), IMG (2) but stored in the db as IMG
 
   # NOTE: strange date conversion
   # this is due to apple date base starting at 2001-01-01
@@ -43,12 +49,9 @@ def update_exif_data(file, timestamp)
     exiftool #{file} -filemodifydate="#{timestamp}" -P -overwrite_original
   CMD
 
-  # puts command
   output, status = Open3.capture2e(command)
 
-  unless status.exitstatus == 0
-    puts "[WARNING] EXIF saving had errors for photo `#{file}`: #{output}"
-  end
+  [output, status.exitstatus]
 end
 
 source = ARGV[0]
@@ -58,19 +61,27 @@ database_path = "photos.db" # TODO: based on library
 database = SQLite3::Database.new(database_path)
 database.results_as_hash = true
 
-Dir.glob(File.join(source, "**/*")).each do |maybe_file|
-  next unless File.file?(maybe_file)
-  file = maybe_file
+files = Dir.glob(File.join(source, "**/*")).select do |maybe_file|
+  File.file?(maybe_file)
+end
+
+progressbar = ProgressBar.create(
+  format: "%a -%e %P% %B Processed: %c from %C",
+  total: files.length,
+)
+
+files.each_with_index do |file, index|
+  progressbar.progress = index
   data = data_from_library(database, file)
 
   if data.length == 0
-    puts "[WARNING] No database entry found for `#{file}`. Skipping"
+    progressbar.log("[WARNING] No database entry found for `#{file}`. Skipping")
     next
   end
 
   if data.length > 1
-    puts "[WARNING] `#{data.length}` database entry found for `#{file}`. Picking first entry."
-    puts "#{data.inspect}"
+    progressbar.log("[WARNING] `#{data.length}` database entry found for `#{file}`. Skipping")
+    next
   end
 
   data = data.first
@@ -81,9 +92,15 @@ Dir.glob(File.join(source, "**/*")).each do |maybe_file|
   FileUtils.mkdir_p(File.dirname(new_file))
   FileUtils.cp_r(file, new_file, remove_destination: true, verbose: false)
 
-  photo = MiniExiftool.new(new_file)
+  photo = MiniExiftool.new(file)
 
-  puts "Updating `#{new_file}` from `#{photo.filemodifydate}` to `#{timestamp}`"
+  progressbar.log("Updating `#{new_file}` from `#{photo.filemodifydate}` to `#{timestamp}`")
 
-  update_exif_data(new_file, timestamp)
+  output, exitstatus = update_exif_data(new_file, timestamp)
+
+  unless exitstatus == 0
+    progressbar.log("[WARNING] EXIF saving had errors for photo `#{file}`: #{output}")
+  end
 end
+
+progressbar.finish
