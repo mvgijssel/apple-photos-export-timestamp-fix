@@ -14,27 +14,45 @@ if ARGV.length != 3
 end
 
 def data_from_library(database, file)
-  base_file = File.basename(file)
+  original_file_size = File.size(file)
+  normalised_file_name = File.basename(file)
 
-  # TODO: from the file AND the timestamp get the data
-  # multiple photos can have the same name so they will exported in finder as
-  # IMG (0), IMG (1), IMG (2) but stored in the db as IMG
+  # NOTE: after exporting photos from Apple photo
+  # the photos can have a suffix when the name is the same, like
+  # IMG, IMG (1), IMG (2)
+  # we need to remove this added suffix because this is not
+  # the way it is stored in the library
+  normalised_file_name = normalised_file_name.gsub(/ \(\d+\)/, "")
+
 
   # NOTE: strange date conversion
   # this is due to apple date base starting at 2001-01-01
   # https://apple.stackexchange.com/questions/114168/dates-format-in-messages-chat-db
+
+  # In a proper photo these are available and probably used by Google photos
+  # modifydate
+  # createdate
+  # datetimeoriginal
   query = <<~SQL
     SELECT
-      datetime(createDate + strftime('%s','2001-01-01'), 'unixepoch') as date
+      datetime(createDate + strftime('%s','2001-01-01'), 'unixepoch') as createDate,
+      datetime(fileModificationDate + strftime('%s','2001-01-01'), 'unixepoch') as fileModificationDate,
+      datetime(imageDate + strftime('%s','2001-01-01'), 'unixepoch') as imageDate,
+      datetime(fileCreationDate + strftime('%s','2001-01-01'), 'unixepoch') as fileCreationDate,
+      originalFileSize
 
     FROM
       RKMaster
 
     WHERE
-      fileName = ?
+      -- fileName = 'DSC_0407.JPG'
+      -- fileName = 'IMG_7314.JPG'
+      -- originalFileSize = 6669176
+
+      fileName = ? AND originalFileSize = ?
   SQL
 
-  database.execute(query, base_file)
+  database.execute(query, normalised_file_name, original_file_size)
 end
 
 def new_file_name(filename, source, dest)
@@ -46,7 +64,7 @@ end
 
 def update_exif_data(file, timestamp)
   command = <<~CMD
-    exiftool #{file} -filemodifydate="#{timestamp}" -P -overwrite_original
+    exiftool '#{file}' -filemodifydate="#{timestamp}" -P -overwrite_original
   CMD
 
   output, status = Open3.capture2e(command)
@@ -63,7 +81,7 @@ database.results_as_hash = true
 
 files = Dir.glob(File.join(source, "**/*")).select do |maybe_file|
   File.file?(maybe_file)
-end
+end.sort
 
 progressbar = ProgressBar.create(
   format: "%a -%e %P% %B Processed: %c from %C",
@@ -86,7 +104,7 @@ files.each_with_index do |file, index|
 
   data = data.first
 
-  timestamp = Time.parse("#{data.fetch('date')} UTC").getlocal
+  timestamp = Time.parse("#{data.fetch('fileCreationDate')} UTC").getlocal
 
   new_file = new_file_name(file, source, dest)
   FileUtils.mkdir_p(File.dirname(new_file))
