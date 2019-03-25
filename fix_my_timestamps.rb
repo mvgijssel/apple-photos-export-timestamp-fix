@@ -24,7 +24,6 @@ def data_from_library(database, file)
   # the way it is stored in the library
   normalised_file_name = normalised_file_name.gsub(/ \(\d+\)/, "")
 
-
   # NOTE: strange date conversion
   # this is due to apple date base starting at 2001-01-01
   # https://apple.stackexchange.com/questions/114168/dates-format-in-messages-chat-db
@@ -62,9 +61,12 @@ def new_file_name(filename, source, dest)
   File.join(dest, relative)
 end
 
+# TODO: write to the right field! Necessary for Google Photo
 def update_exif_data(file, timestamp)
   command = <<~CMD
-    exiftool '#{file}' -filemodifydate="#{timestamp}" -P -overwrite_original
+    exiftool '#{file}' \
+      -filemodifydate="#{timestamp}" \
+      -P -overwrite_original
   CMD
 
   output, status = Open3.capture2e(command)
