@@ -20,7 +20,7 @@ def data_from_library(database, file)
   # the photos can have a suffix when the name is the same, like
   # IMG, IMG (1), IMG (2)
   # we need to remove this added suffix because this is not
-  # the way it is stored in the library
+  # the way it is stored in the library database
   normalised_file_name = normalised_file_name.gsub(/ \(\d+\)/, "")
 
   # NOTE: strange date conversion
@@ -76,6 +76,10 @@ end
 source = ARGV[0]
 dest = ARGV[1]
 library = ARGV[2]
+
+# TODO: copy photos.db to tmp folder
+# Use temp copy as database to prevent weird locks
+
 database_path = "photos.db" # TODO: based on library
 database = SQLite3::Database.new(database_path)
 database.results_as_hash = true
