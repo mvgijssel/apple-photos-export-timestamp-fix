@@ -1,0 +1,17 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    mini_exiftool (2.9.0)
+    ruby-progressbar (1.10.1)
+    sqlite3 (1.4.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mini_exiftool
+  ruby-progressbar
+  sqlite3
+
+BUNDLED WITH
+   1.17.2
