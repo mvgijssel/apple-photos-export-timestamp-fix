@@ -7,7 +7,6 @@ require 'open3'
 require 'mini_exiftool'
 require 'ruby-progressbar'
 
-
 if ARGV.length != 3
   puts "Please provide three arguments: `fix_my_timestamps src/ dest/ library`"
   exit 1
