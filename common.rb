@@ -24,12 +24,12 @@ class FixTimestamp
       data = data_from_file(image_file)
 
       if data.empty?
-        progressbar.log("[WARNING] No database entry found for `#{file}`. Skipping")
+        progressbar.log("[WARNING] No database entry found for `#{image_file}`. Skipping")
         next
       end
 
       if data.length > 1
-        progressbar.log("[WARNING] `#{data.length}` database entry found for `#{file}`. Skipping")
+        progressbar.log("[WARNING] `#{data.length}` database entry found for `#{image_file}`. Skipping")
         next
       end
 

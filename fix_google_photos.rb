@@ -21,7 +21,7 @@ class FixGoogleTimestamp < FixTimestamp
                    when '.json'
                      json_files << file
                    else
-                     raise "Unknown extension `#{extension}` for file `#{file}`"
+                     progressbar.log("[WARNING] Unknown extension `#{extension.downcase}` for `#{file}`, skipping")
                    end
                  end
 
