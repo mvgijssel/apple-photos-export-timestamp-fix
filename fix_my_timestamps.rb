@@ -1,11 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'sqlite3'
-require 'pathname'
-require 'fileutils'
-require 'open3'
-require 'mini_exiftool'
-require 'ruby-progressbar'
+require_relative './common'
 
 if ARGV.length != 3
   puts "Please provide three arguments: `fix_my_timestamps src/ dest/ library`"
@@ -51,26 +46,6 @@ def data_from_library(database, file)
   SQL
 
   database.execute(query, normalised_file_name, original_file_size)
-end
-
-def new_file_name(filename, source, dest)
-  absolute_path = Pathname.new(File.expand_path(filename))
-  project_root  = Pathname.new(File.expand_path(source))
-  relative      = absolute_path.relative_path_from(project_root)
-  File.join(dest, relative)
-end
-
-# TODO: write to the right field! Necessary for Google Photo
-def update_exif_data(file, timestamp)
-  command = <<~CMD
-    exiftool '#{file}' \
-      -filemodifydate="#{timestamp}" \
-      -P -overwrite_original
-  CMD
-
-  output, status = Open3.capture2e(command)
-
-  [output, status.exitstatus]
 end
 
 source = ARGV[0]

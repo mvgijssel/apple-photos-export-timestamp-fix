@@ -34,3 +34,26 @@ $ cp ~/Pictures/'Photos Library.photoslibrary' ~/Desktop/apple-photos-export-tim
 cd  ~/Desktop/apple-photos-export-timestamp-fix
 $ ./fix_my_timestamps.rb images/ fixed_images/ library
 ```
+
+
+
+
+
+
+## Google Photos
+
+Move all the archives to a single folder
+
+Unzip all the archives downloaded from Google takeout
+```
+for file in $(ls); do; echo "Processing $file"; unzip $file -d "unzip-$file"; done
+```
+
+Merge all the unzipped folders
+```
+mkdir merged
+
+for folder in $(ls | grep "unzip-"); do; echo "Processing $folder"; cp -R $folder/Takeout/Google\ Foto_s/* merged/ ; done
+```
+
+Fix all of the timestamps of the Google Photos

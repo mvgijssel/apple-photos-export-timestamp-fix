@@ -10,3 +10,11 @@ end
 gem 'sqlite3'
 gem 'mini_exiftool'
 gem 'ruby-progressbar'
+gem 'activesupport'
+
+gem 'pry-alias'
+gem 'pry-nav'
+gem 'pry-rails'
+gem 'pry-remote'
+gem 'pry-rescue'
+gem 'pry-stack_explorer'

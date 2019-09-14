@@ -1,15 +1,62 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    activesupport (6.0.0)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 0.7, < 2)
+      minitest (~> 5.1)
+      tzinfo (~> 1.1)
+      zeitwerk (~> 2.1, >= 2.1.8)
+    binding_of_caller (0.8.0)
+      debug_inspector (>= 0.0.1)
+    coderay (1.1.2)
+    concurrent-ruby (1.1.5)
+    debug_inspector (0.0.3)
+    i18n (1.6.0)
+      concurrent-ruby (~> 1.0)
+    interception (0.5)
+    method_source (0.9.2)
     mini_exiftool (2.9.0)
+    minitest (5.11.3)
+    pry (0.12.2)
+      coderay (~> 1.1.0)
+      method_source (~> 0.9.0)
+    pry-alias (0.0.1)
+      binding_of_caller
+      pry
+    pry-nav (0.3.0)
+      pry (>= 0.9.10, < 0.13.0)
+    pry-rails (0.3.9)
+      pry (>= 0.10.4)
+    pry-remote (0.1.8)
+      pry (~> 0.9)
+      slop (~> 3.0)
+    pry-rescue (1.5.0)
+      interception (>= 0.5)
+      pry (>= 0.12.0)
+    pry-stack_explorer (0.4.9.3)
+      binding_of_caller (>= 0.7)
+      pry (>= 0.9.11)
     ruby-progressbar (1.10.1)
+    slop (3.6.0)
     sqlite3 (1.4.1)
+    thread_safe (0.3.6)
+    tzinfo (1.2.5)
+      thread_safe (~> 0.1)
+    zeitwerk (2.1.10)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
+  activesupport
   mini_exiftool
+  pry-alias
+  pry-nav
+  pry-rails
+  pry-remote
+  pry-rescue
+  pry-stack_explorer
   ruby-progressbar
   sqlite3
 
