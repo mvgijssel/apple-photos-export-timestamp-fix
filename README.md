@@ -1,4 +1,4 @@
-# Apple Photos - Export timestamp fix
+# Apple Photos
 
 When exporting unmodified originals from Apple Photos the timestamps can be wrong.
 Sometimes this information is still available within the photo EXIF data, but
@@ -17,43 +17,61 @@ into the photo EXIF data.
 
 1. Clone the project to your Desktop
 ```
-$ git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/apple-photos-export-timestamp-fix
+git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/apple-photos-export-timestamp-fix
 ```
 
-2. **Copy** your Apple Photos library to the folder (mostly located in `~/Pictures/`)
-```
-$ cp ~/Pictures/'Photos Library.photoslibrary' ~/Desktop/apple-photos-export-timestamp-fix/library
-```
-
-3. Export unmodified originals from Apple Photos and save into `~/Desktop/apple-photos-export-timestamp-fix/images`
+2. Export unmodified originals from Apple Photos and save into `~/Desktop/apple-photos-export-timestamp-fix/images`
 
 <img src="./export-apple-photos.png" alt="Export Apple Photos" /> 
 
-4. Run this script
+3. Run this script
 ```
 cd  ~/Desktop/apple-photos-export-timestamp-fix
-$ ./fix_my_timestamps.rb images/ fixed_images/ library
+./fix_my_timestamps.rb images/ fixed_images/ ~/Pictures/Photos\ Library.photoslibrary
 ```
 
+> NOTE: assuming the iCloud Photos library is located at ~/Pictures/Photos Library.photoslibrary
 
 
 
+# Google Photos
 
+## Getting started
 
-## Google Photos
+1. Clone the project to your Desktop
+```
+git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/google-photos-fixer
+```
 
-Move all the archives to a single folder
+2. Install all the dependencies
+```
+brew install exiftool
+bundle install
+```
 
-Unzip all the archives downloaded from Google takeout
+3. Export Google Photos using https://takeout.google.com/settings/takeout 
+
+> Depending on the number of photos you have, the photos will need to be downloaded in 
+multiple archives. Try to make the archives as large as possible (50GB), smaller archives can 
+miss necessary json information.
+
+4. Move all the .zip archives to a single folder: `~/Desktop/google-photos-fixer/images`
+
+5. Unzip all the archives using the following command 
+
 ```
 for file in $(ls); do; echo "Processing $file"; unzip $file -d "unzip-$file"; done
 ```
 
-Merge all the unzipped folders
+6. Merge all the unzipped folders
 ```
 mkdir merged
 
 for folder in $(ls | grep "unzip-"); do; echo "Processing $folder"; cp -R $folder/Takeout/Google\ Foto_s/* merged/ ; done
 ```
 
-Fix all of the timestamps of the Google Photos
+7. Run this script
+```
+cd  ~/Desktop/google-photos-fixer
+./fix_google_photos.rb images/ fixed_images/
+```
