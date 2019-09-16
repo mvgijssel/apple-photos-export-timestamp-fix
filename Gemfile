@@ -11,6 +11,7 @@ gem 'sqlite3'
 gem 'mini_exiftool'
 gem 'ruby-progressbar'
 gem 'activesupport'
+gem 'activerecord'
 
 gem 'pry-alias'
 gem 'pry-nav'
