@@ -17,6 +17,8 @@ gem 'concurrent-ruby'
 gem 'concurrent-ruby-ext'
 gem 'concurrent-ruby-edge'
 
+gem 'commander'
+
 gem 'pry-alias'
 gem 'pry-nav'
 gem 'pry-rails'

@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# require 'rubygems'
+require 'pry'
+require 'commander'
+
+class PhotoFix
+  include Commander::Methods
+
+  def run
+    program :name, 'photofix'
+    program :version, '0.0.1'
+    program :description, 'Various tools for fixing photos'
+
+    command 'google' do |c|
+      c.syntax = 'photofix google source'
+      c.summary = 'Fix timestamps from photos downloaded from Google Photos'
+      c.description = <<~DESC
+        After downloading photos from Google photo using Google Takeout
+        the timestamps of both creation and modification are wrong (set
+        to the time the archive is creaetd).
+
+        This command fixes the photos using the supplied .json files within
+        the downloaded archive.
+      DESC
+      c.example 'description', 'photofix google ~/some-folder'
+      c.action do |args, options|
+        puts "installing #{args.first} to #{options.dest}"
+      end
+    end
+
+    run!
+  end
+end
+
+PhotoFix.new.run if $PROGRAM_NAME == __FILE__
