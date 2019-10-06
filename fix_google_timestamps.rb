@@ -172,48 +172,51 @@ class FixGoogleTimestamp
 
     promises = media_files.map do |media_file, data_file|
       Concurrent::Promises.future_on(FUTURE_POOL) do
-        # Translate
-        # source: /some/folder
-        # image: /some/folder/image.jpg
-        # relative: image.jpg
-        relative_path = Pathname.new(media_file).relative_path_from Pathname.new(source)
-        media_file_final = File.join(destination, relative_path)
-        media_file_directory = File.dirname(media_file_final)
-        FileUtils.mkdir_p media_file_directory
-        FileUtils.copy(media_file, media_file_final)
+        begin
+          # Translate
+          # source: /some/folder
+          # image: /some/folder/image.jpg
+          # relative: image.jpg
+          relative_path = Pathname.new(media_file).relative_path_from Pathname.new(source)
+          media_file_final = File.join(destination, relative_path)
+          media_file_directory = File.dirname(media_file_final)
+          FileUtils.mkdir_p media_file_directory
+          FileUtils.copy(media_file, media_file_final)
 
-        # load data file
-        # data = Oj.load File.read(data_file)
+          # load data file
+          data = Oj.load File.read(data_file)
 
-        # create_timestamp = Time.at(
-        #   data.fetch('photoTakenTime').fetch('timestamp').to_f
-        # ).getlocal
+          create_timestamp = Time.at(
+            data.fetch('photoTakenTime').fetch('timestamp').to_f
+          ).getlocal
 
-        # modify_timestamp = Time.at(
-        #   data.fetch('modificationTime').fetch('timestamp').to_f
-        # ).getlocal
+          modify_timestamp = Time.at(
+            data.fetch('modificationTime').fetch('timestamp').to_f
+          ).getlocal
 
-        # new_exif_attributes = {
-        #   'filemodifydate' => modify_timestamp,
-        #   'filecreatedate' => create_timestamp,
-        # }
+          new_exif_attributes = {
+            'filemodifydate' => modify_timestamp,
+            'filecreatedate' => create_timestamp,
+          }
 
-        # # change media file
-        # command = "exiftool '#{media_file}'"
+          # change media file
+          command = "exiftool '#{media_file_final}'"
 
-        # new_exif_attributes.each do |name, value|
-        #   command += %( -#{name}="#{value}")
-        # end
+          new_exif_attributes.each do |name, value|
+            command += %( -#{name}="#{value}")
+          end
 
-        # command += '-P -overwrite_original'
+          command += '-P -overwrite_original'
 
-        # pid, stdin, stdout, stderr = POSIX::Spawn.popen4(command)
+          child = POSIX::Spawn::Child.new(command)
 
-        # # output, status = Open3.capture2e(command)
+          unless child.status.exitstatus.zero?
+            progress.tell action: :log, value: child.err
+          end
 
-        # unless status.exitstatus.zero?
-        #   progress.tell action: :log, value:
-        # end
+        rescue => e
+          progress.tell action: :log, value: e.message
+        end
 
         progress.tell action: :increment
       end
