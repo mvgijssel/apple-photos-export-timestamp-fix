@@ -25,16 +25,19 @@ class PhotoFix
         the downloaded archive.
       DESC
       c.example 'Update Google exported photos in ~/some-folder', 'photofix google ~/some-folder'
-      c.action do |args, _options|
+      c.option '--dest STRING', String, 'Directory where the images are copied to'
+      c.action do |args, options|
         if args.length != 1
           raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 1"
         end
 
-        destination = args.first
+        source = args.first
+
+        options.default dest: File.join(source, 'FINAL')
 
         require_relative './fix_google_timestamps'
 
-        fixer = FixGoogleTimestamp.new(destination)
+        fixer = FixGoogleTimestamp.new(source, options.dest)
         fixer.call
       end
     end

@@ -19,6 +19,9 @@ gem 'concurrent-ruby-edge'
 
 gem 'commander'
 
+gem 'oj'
+gem 'posix-spawn'
+
 gem 'pry-alias'
 gem 'pry-nav'
 gem 'pry-rails'

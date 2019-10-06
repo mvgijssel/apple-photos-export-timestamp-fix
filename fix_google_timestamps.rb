@@ -2,14 +2,21 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'mini_exiftool'
 
+require 'pathname'
+require 'fileutils'
+require 'oj'
+require 'posix/spawn'
+
 require_relative 'progress'
 
-FUTURE_POOL = Concurrent::FixedThreadPool.new(8000)
+FUTURE_POOL = Concurrent::FixedThreadPool.new(100)
 
 class FixGoogleTimestamp
+  attr_reader :source
   attr_reader :destination
 
-  def initialize(destination)
+  def initialize(source, destination)
+    @source = source
     @destination = destination
   end
 
@@ -18,8 +25,9 @@ class FixGoogleTimestamp
     data_files = {}
     unknown_extensions = Hash.new 0
 
-    Dir.glob(File.join(destination, '**/*')).each do |maybe_file|
+    Dir.glob(File.join(source, '**/*')).each do |maybe_file|
       next unless File.file?(maybe_file)
+      next if maybe_file.start_with?(destination)
 
       file = maybe_file
       file_extension = File.extname(file)
@@ -158,15 +166,60 @@ class FixGoogleTimestamp
       puts "Skipping (#{media_files_omitted.length}) duplicate files"
     end
 
+    puts "Moving to #{destination}"
+
     progress = Progress.spawn(name: :progress, args: media_files.length)
 
-    promises = media_files.map do |media_file|
+    promises = media_files.map do |media_file, data_file|
       Concurrent::Promises.future_on(FUTURE_POOL) do
+        # Translate
+        # source: /some/folder
+        # image: /some/folder/image.jpg
+        # relative: image.jpg
+        relative_path = Pathname.new(media_file).relative_path_from Pathname.new(source)
+        media_file_final = File.join(destination, relative_path)
+        media_file_directory = File.dirname(media_file_final)
+        FileUtils.mkdir_p media_file_directory
+        FileUtils.copy(media_file, media_file_final)
+
+        # load data file
+        # data = Oj.load File.read(data_file)
+
+        # create_timestamp = Time.at(
+        #   data.fetch('photoTakenTime').fetch('timestamp').to_f
+        # ).getlocal
+
+        # modify_timestamp = Time.at(
+        #   data.fetch('modificationTime').fetch('timestamp').to_f
+        # ).getlocal
+
+        # new_exif_attributes = {
+        #   'filemodifydate' => modify_timestamp,
+        #   'filecreatedate' => create_timestamp,
+        # }
+
+        # # change media file
+        # command = "exiftool '#{media_file}'"
+
+        # new_exif_attributes.each do |name, value|
+        #   command += %( -#{name}="#{value}")
+        # end
+
+        # command += '-P -overwrite_original'
+
+        # pid, stdin, stdout, stderr = POSIX::Spawn.popen4(command)
+
+        # # output, status = Open3.capture2e(command)
+
+        # unless status.exitstatus.zero?
+        #   progress.tell action: :log, value:
+        # end
+
         progress.tell action: :increment
       end
     end
 
-    Concurrent::Promises.zip(*promises).value
+    Concurrent::Promises.zip(*promises).value!
 
     progress.ask! action: :finish
   end

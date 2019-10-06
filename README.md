@@ -90,7 +90,7 @@ for folder in $(ls | grep "unzip-"); do; echo "Removing $folder"; rm -rf $folder
 cd ~/Desktop/photofix
 ```
 
-11. Run script to fix google photo timestamps
+11. Run script to fix google photo timestamps and export to `~/Desktop/photofix/final`
 ```
-./photofix google ~/Desktop/photofix/images
+./photofix google ~/Desktop/photofix/images --dest ~/Desktop/photofix/final
 ```
