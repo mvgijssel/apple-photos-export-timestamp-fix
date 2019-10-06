@@ -154,14 +154,15 @@ class FixGoogleTimestamp
       raise message
     end
 
-    binding.pry
+    unless media_files_omitted.length.zero?
+      puts "Skipping (#{media_files_omitted.length}) duplicate files"
+    end
 
-    progress = Progress.spawn(name: :progress, args: image_files.length)
+    progress = Progress.spawn(name: :progress, args: media_files.length)
 
-    promises = image_files.map do |image_file|
+    promises = media_files.map do |media_file|
       Concurrent::Promises.future_on(FUTURE_POOL) do
         progress.tell action: :increment
-        progress.tell action: :log, value: image_file
       end
     end
 
