@@ -166,7 +166,7 @@ class FixGoogleTimestamp
       puts "Skipping (#{media_files_omitted.length}) duplicate files"
     end
 
-    puts "Moving to #{destination}"
+    puts "Saving updated images to #{destination}"
 
     progress = Progress.spawn(name: :progress, args: media_files.length)
 
@@ -190,13 +190,19 @@ class FixGoogleTimestamp
             data.fetch('photoTakenTime').fetch('timestamp').to_f
           ).getlocal
 
-          modify_timestamp = Time.at(
-            data.fetch('modificationTime').fetch('timestamp').to_f
-          ).getlocal
+          # modify_timestamp = Time.at(
+          #   data.fetch('modificationTime').fetch('timestamp').to_f
+          # ).getlocal
 
+          # NOTE that we're setting both the modification and creation date to the create timestamp.
+          # The modification timestamp is mostly wrong and will be chosen when the creation time
+          # is missing in the EXIF data
           new_exif_attributes = {
-            'filemodifydate' => modify_timestamp,
-            'filecreatedate' => create_timestamp,
+            'file:filemodifydate' => create_timestamp,
+            'file:filecreatedate' => create_timestamp,
+            'datetimeoriginal' => create_timestamp,
+            'createdate' => create_timestamp,
+            'modifydate' => create_timestamp,
           }
 
           # change media file
