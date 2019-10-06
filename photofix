@@ -24,9 +24,18 @@ class PhotoFix
         This command fixes the photos using the supplied .json files within
         the downloaded archive.
       DESC
-      c.example 'description', 'photofix google ~/some-folder'
-      c.action do |args, options|
-        puts "installing #{args.first} to #{options.dest}"
+      c.example 'Update Google exported photos in ~/some-folder', 'photofix google ~/some-folder'
+      c.action do |args, _options|
+        if args.length != 1
+          raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 1"
+        end
+
+        destination = args.first
+
+        require_relative './fix_google_timestamps'
+
+        fixer = FixGoogleTimestamp.new(destination)
+        fixer.call
       end
     end
 

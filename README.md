@@ -35,43 +35,62 @@ cd  ~/Desktop/apple-photos-export-timestamp-fix
 
 
 # Google Photos
+When exporting photos from Google Photos the timestamps are not preserved within the photo EXIF data, this data is provided in a "sidecar" json file. 
 
-## Getting started
+## Fixing my timestamps
 
-1. Clone the project to your Desktop
+1. Clone the project, for example to your Desktop
 ```
-git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/google-photos-fixer
+git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/photofix
 ```
 
-2. Install all the dependencies
+2. Navigate into the installation directory
+```
+cd ~/Desktop/photofix
+```
+
+3. Install all the dependencies
 ```
 brew install exiftool
 bundle install
 ```
 
-3. Export Google Photos using https://takeout.google.com/settings/takeout 
+4. Export Google Photos using https://takeout.google.com/settings/takeout 
 
 > Depending on the number of photos you have, the photos will need to be downloaded in 
 multiple archives. Try to make the archives as large as possible (50GB), smaller archives can 
 miss necessary json information.
 
-4. Move all the .zip archives to a single folder: `~/Desktop/google-photos-fixer/images`
+5. Move all the .zip archives to a single folder: `~/Desktop/photofix/images`
 
-5. Unzip all the archives using the following command 
+6. Navigate to the images folder
+```
+cd ~/Desktop/photofix/images
+```
+
+7. Unzip all the archives using the following command 
 
 ```
 for file in $(ls); do; echo "Processing $file"; unzip $file -d "unzip-$file"; done
 ```
 
-6. Merge all the unzipped folders
+8. Merge all the unzipped folders
 ```
 mkdir merged
-
-for folder in $(ls | grep "unzip-"); do; echo "Processing $folder"; cp -R $folder/Takeout/Google\ Foto_s/* merged/ ; done
+for folder in $(ls | grep "unzip-"); do; echo "Merging $folder"; cp -R $folder/Takeout/Google\ Foto_s/* merged/; done
 ```
 
-7. Run this script
+9. Remove the unzipped folders
 ```
-cd  ~/Desktop/google-photos-fixer
-./fix_google_photos.rb images/ fixed_images/
+for folder in $(ls | grep "unzip-"); do; echo "Removing $folder"; rm -rf $folder; done
+```
+
+10. Navigate to the installation directory
+```
+cd ~/Desktop/photofix
+```
+
+11. Run script to fix google photo timestamps
+```
+./photofix google ~/Desktop/photofix/images
 ```
