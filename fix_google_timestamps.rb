@@ -182,6 +182,7 @@ class FixGoogleTimestamp
           media_file_directory = File.dirname(media_file_final)
           FileUtils.mkdir_p media_file_directory
           FileUtils.copy(media_file, media_file_final)
+          file_extension = File.extname(media_file_final)
 
           # load data file
           data = Oj.load File.read(data_file)
@@ -200,26 +201,57 @@ class FixGoogleTimestamp
           new_exif_attributes = {
             'file:filemodifydate' => create_timestamp,
             'file:filecreatedate' => create_timestamp,
-            'datetimeoriginal' => create_timestamp,
-            'createdate' => create_timestamp,
-            'modifydate' => create_timestamp,
           }
 
+          unless file_extension.downcase == '.heic'
+            new_exif_attributes.merge!({
+              'exif:datetimeoriginal' => create_timestamp,
+              'exif:createdate' => create_timestamp,
+              'exif:modifydate' => create_timestamp,
+            })
+          end
+
           # change media file
-          command = "exiftool '#{media_file_final}'"
+          update_command = "exiftool '#{media_file_final}'"
 
           new_exif_attributes.each do |name, value|
-            command += %( -#{name}="#{value}")
+            update_command += %( -#{name}="#{value}")
           end
 
-          command += '-P -overwrite_original'
-
-          child = POSIX::Spawn::Child.new(command)
+          update_command += '-P -overwrite_original'
+          child = POSIX::Spawn::Child.new(update_command)
 
           unless child.status.exitstatus.zero?
-            progress.tell action: :log, value: child.err
-          end
+            # make a copy of the file
+            temp_copy = "#{media_file_final}_TEMP"
+            FileUtils.copy(media_file_final, temp_copy)
 
+            # remove all exif data on the TEMP
+            nuke_command = "exiftool -exif:all= '#{temp_copy}' -P -overwrite_original"
+            child = POSIX::Spawn::Child.new(nuke_command)
+
+            if child.status.exitstatus.zero?
+              # copy all tags from original
+              copy_command = "exiftool -tagsfromfile '#{media_file_final}' -all:all '#{temp_copy}' -P -overwrite_original"
+              child = POSIX::Spawn::Child.new(copy_command)
+
+              if child.status.exitstatus.zero?
+                # make TEMP the original
+                FileUtils.move(temp_copy, media_file_final)
+
+                # run actual update
+                child = POSIX::Spawn::Child.new(update_command)
+
+                unless child.status.exitstatus.zero?
+                  progress.tell action: :log, value: child.err
+                end
+              else
+                progress.tell action: :log, value: child.err
+              end
+            else
+              progress.tell action: :log, value: child.err
+            end
+          end
         rescue => e
           progress.tell action: :error, value: e.message
         end
