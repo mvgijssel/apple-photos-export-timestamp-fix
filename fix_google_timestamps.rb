@@ -221,7 +221,7 @@ class FixGoogleTimestamp
           end
 
         rescue => e
-          progress.tell action: :log, value: e.message
+          progress.tell action: :error, value: e.message
         end
 
         progress.tell action: :increment
