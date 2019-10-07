@@ -17,22 +17,24 @@ into the photo EXIF data.
 
 1. Clone the project to your Desktop
 ```
-git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/apple-photos-export-timestamp-fix
+git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/photofix
 ```
 
-2. Export unmodified originals from Apple Photos and save into `~/Desktop/apple-photos-export-timestamp-fix/images`
+2. Export unmodified originals from Apple Photos and save into `~/Desktop/photofix/images`
 
 <img src="./export-apple-photos.png" alt="Export Apple Photos" /> 
 
-3. Run this script
+3. Make sure to export photos to their **Moment Name** subfolder
+
+<img src="./export-apple-photos-subfolder.png" alt="Export Apple Photos Subfolder" /> 
+
+4. Run this script
 ```
-cd  ~/Desktop/apple-photos-export-timestamp-fix
-./fix_my_timestamps.rb images/ fixed_images/ ~/Pictures/Photos\ Library.photoslibrary
+cd  ~/Desktop/photofix
+./photofix apple ./images
 ```
 
 > NOTE: assuming the iCloud Photos library is located at ~/Pictures/Photos Library.photoslibrary
-
-
 
 # Google Photos
 When exporting photos from Google Photos the timestamps are not preserved within the photo EXIF data, this data is provided in a "sidecar" json file. 

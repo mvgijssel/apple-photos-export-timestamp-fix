@@ -32,12 +32,38 @@ class PhotoFix
         end
 
         source = args.first
-
         options.default dest: File.join(source, 'FINAL')
 
-        require_relative './fix_google_timestamps'
+        require_relative './fix_google_timestamp'
 
         fixer = FixGoogleTimestamp.new(source, options.dest)
+        fixer.call
+      end
+    end
+
+    command 'apple' do |c|
+      c.syntax = 'photofix apple source'
+      c.summary = 'Fix timestamps from photos downloaded from Apple Photos'
+      c.description = <<~DESC
+        After downloading unmodified originals from Apple Photos the timestamps
+        of some of the photos are incorrect.
+
+        This command fixes the photos using data from
+        the Apple Photos library database (sqlite) and exiftool.
+      DESC
+      c.example 'Update Apple Photos exported photos in ~/some-folder', 'photofix apple ~/some-folder'
+      c.option '--dest STRING', String, 'Directory where the images are copied to'
+      c.action do |args, options|
+        if args.length != 1
+          raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 1"
+        end
+
+        source = args.first
+        options.default dest: File.join(source, 'FINAL')
+
+        require_relative './fix_apple_timestamp'
+
+        fixer = FixAppleTimestamp.new(source, options.dest)
         fixer.call
       end
     end
