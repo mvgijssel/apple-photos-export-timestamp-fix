@@ -191,23 +191,27 @@ class FixGoogleTimestamp
             data.fetch('photoTakenTime').fetch('timestamp').to_f
           ).getlocal
 
-          # modify_timestamp = Time.at(
-          #   data.fetch('modificationTime').fetch('timestamp').to_f
-          # ).getlocal
+          modify_timestamp = Time.at(
+            data.fetch('modificationTime').fetch('timestamp').to_f
+          ).getlocal
+
+          new_exif_attributes = {}
 
           # NOTE that we're setting both the modification and creation date to the create timestamp.
           # The modification timestamp is mostly wrong and will be chosen when the creation time
           # is missing in the EXIF data
-          new_exif_attributes = {
+          basic_exif_attributes = {
             'file:filemodifydate' => create_timestamp,
             'file:filecreatedate' => create_timestamp,
           }
+
+          new_exif_attributes.merge! basic_exif_attributes
 
           unless file_extension.downcase == '.heic'
             new_exif_attributes.merge!({
               'exif:datetimeoriginal' => create_timestamp,
               'exif:createdate' => create_timestamp,
-              'exif:modifydate' => create_timestamp,
+              'exif:modifydate' => modify_timestamp,
             })
           end
 
@@ -222,34 +226,77 @@ class FixGoogleTimestamp
           child = POSIX::Spawn::Child.new(update_command)
 
           unless child.status.exitstatus.zero?
-            # make a copy of the file
-            temp_copy = "#{media_file_final}_TEMP"
-            FileUtils.copy(media_file_final, temp_copy)
+            if child.err.include?("Error: Not a valid PNG (looks more like a JPEG)")
+              # Rename the file to jpg, as indicated by the error message
+              # and try to update the file again
 
-            # remove all exif data on the TEMP
-            nuke_command = "exiftool -exif:all= '#{temp_copy}' -P -overwrite_original"
-            child = POSIX::Spawn::Child.new(nuke_command)
+              dir_name = File.dirname(media_file_final)
+              new_base_name = File.basename(File.basename(media_file_final), File.extname(media_file_final)) + '.jpg'
+              updated_extension_media_file = File.join(dir_name, new_base_name)
+              FileUtils.move(media_file_final, updated_extension_media_file)
 
-            if child.status.exitstatus.zero?
-              # copy all tags from original
-              copy_command = "exiftool -tagsfromfile '#{media_file_final}' -all:all '#{temp_copy}' -P -overwrite_original"
-              child = POSIX::Spawn::Child.new(copy_command)
+              update_command = "exiftool '#{updated_extension_media_file}'"
+
+              new_exif_attributes.each do |name, value|
+                update_command += %( -#{name}="#{value}")
+              end
+
+              update_command += '-P -overwrite_original'
+              child = POSIX::Spawn::Child.new(update_command)
+
+              unless child.status.exitstatus.zero?
+                progress.tell action: :log, value: child.err, tag: 'PNG_FAIL'
+              end
+            else
+              # make a copy of the file
+              temp_copy = "#{media_file_final}_TEMP"
+              FileUtils.copy(media_file_final, temp_copy)
+
+              # remove all exif data on the TEMP
+              nuke_command = "exiftool -exif:all= '#{temp_copy}' -P -overwrite_original"
+              child = POSIX::Spawn::Child.new(nuke_command)
 
               if child.status.exitstatus.zero?
-                # make TEMP the original
-                FileUtils.move(temp_copy, media_file_final)
+                # copy all tags from original
+                copy_command = "exiftool -tagsfromfile '#{media_file_final}' -all:all '#{temp_copy}' -P -overwrite_original"
+                child = POSIX::Spawn::Child.new(copy_command)
 
-                # run actual update
+                if child.status.exitstatus.zero?
+                  # make TEMP the original
+                  FileUtils.move(temp_copy, media_file_final)
+
+                  # run actual update
+                  child = POSIX::Spawn::Child.new(update_command)
+
+                  unless child.status.exitstatus.zero?
+                    progress.tell action: :log, value: child.err, tag: 'PRISTINE_FAIL'
+                  end
+                else
+                  # Remove the TEMP file
+                  FileUtils.remove(temp_copy)
+
+                  progress.tell action: :log, value: child.err, tag: 'OVERWRITE_FAIL'
+                end
+              else
+                # Seems the EXIF is super duper broken
+                # so let's only update the file attributes
+                #
+                # Remove the TEMP file
+                FileUtils.remove(temp_copy)
+
+                update_command = "exiftool '#{media_file_final}'"
+
+                basic_exif_attributes.each do |name, value|
+                  update_command += %( -#{name}="#{value}")
+                end
+
+                update_command += '-P -overwrite_original'
                 child = POSIX::Spawn::Child.new(update_command)
 
                 unless child.status.exitstatus.zero?
-                  progress.tell action: :log, value: child.err
+                  progress.tell action: :log, value: child.err, tag: 'BROKEN_FAIL'
                 end
-              else
-                progress.tell action: :log, value: child.err
               end
-            else
-              progress.tell action: :log, value: child.err
             end
           end
         rescue => e
