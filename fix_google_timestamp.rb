@@ -11,10 +11,12 @@ FUTURE_POOL = Concurrent::FixedThreadPool.new(100)
 class FixGoogleTimestamp
   attr_reader :source
   attr_reader :destination
+  attr_reader :verbose
 
-  def initialize(source, destination)
+  def initialize(source, destination, verbose)
     @source = source
     @destination = destination
+    @verbose = verbose
   end
 
   def call

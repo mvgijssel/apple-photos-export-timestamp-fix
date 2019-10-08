@@ -9,6 +9,8 @@ class PhotoFix
   include Commander::Methods
 
   def run
+    global_option('--verbose') { @verbose = true }
+
     program :name, 'photofix'
     program :version, '0.0.1'
     program :description, 'Various tools for fixing photos'
@@ -36,7 +38,7 @@ class PhotoFix
 
         require_relative './fix_google_timestamp'
 
-        fixer = FixGoogleTimestamp.new(source, options.dest)
+        fixer = FixGoogleTimestamp.new(source, options.dest, @verbose)
         fixer.call
       end
     end
@@ -77,7 +79,7 @@ class PhotoFix
 
         require_relative './fix_apple_timestamp'
 
-        fixer = FixAppleTimestamp.new(source, options.dest, options.library)
+        fixer = FixAppleTimestamp.new(source, options.dest, options.library, @verbose)
         fixer.call
       end
     end

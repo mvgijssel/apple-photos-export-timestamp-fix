@@ -13,10 +13,12 @@ class FixAppleTimestamp
   attr_reader :destination
   attr_reader :database
   attr_reader :temp_directory
+  attr_reader :verbose
 
-  def initialize(source, destination, existing_database_path)
+  def initialize(source, destination, existing_database_path, verbose)
     @source = source
     @destination = destination
+    @verbose = verbose
     @temp_directory = File.join(destination, 'tmp')
 
     database_path = File.join(temp_directory, 'photos.db')
@@ -98,7 +100,10 @@ class FixAppleTimestamp
             data.fetch(:modify_timestamp),
           )
         rescue => e
-          progress.tell action: :error, value: "#{file} - #{e.message}" + e.backtrace.join("\n")
+          message = "#{file} - #{e.message}"
+          message += e.backtrace.join("\n") if verbose
+
+          progress.tell action: :error, value: message
         end
 
         progress.tell action: :increment
