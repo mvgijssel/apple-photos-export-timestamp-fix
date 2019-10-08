@@ -60,6 +60,10 @@ class FixAppleTimestamp
       }
     end
 
+    unless media_files_unknown_data.length.zero?
+      raise "Files with too much data (#{media_files_unknown_data.length})"
+    end
+
     unless media_files_missing_data.length.zero?
       albums_with_missing_data = Hash.new { |memo, key| memo[key] = [] }
 
@@ -119,44 +123,75 @@ class FixAppleTimestamp
 
   private
 
-  def data_from_file(file)
-    original_file_size = File.size(file)
-    normalised_file_name = File.basename(file)
+  def data_from_file(target_file)
+    file_extension = File.extname(target_file)
 
-    # NOTE: after exporting photos from Apple photo
-    # the photos can have a suffix when the name is the same, like
-    # IMG, IMG (1), IMG (2)
-    # we need to remove this added suffix because this is not
-    # the way it is stored in the library database
-    normalised_file_name = normalised_file_name.gsub(/ \(\d+\)/, "")
+    # .mov information might be stored in .jpg or .heic with the same name
+    file_names = if file_extension.downcase == '.mov'
+      file_directory = File.dirname(target_file)
+      new_base_name = File.basename(File.basename(target_file), File.extname(target_file))
 
-    # NOTE: strange date conversion
-    # this is due to apple date base starting at 2001-01-01
-    # https://apple.stackexchange.com/questions/114168/dates-format-in-messages-chat-db
+      [
+        target_file,
+        File.join(file_directory, new_base_name) + '.jpg',
+        File.join(file_directory, new_base_name) + '.JPG',
+        File.join(file_directory, new_base_name) + '.heic',
+        File.join(file_directory, new_base_name) + '.HEIC',
+      ]
+    else
+      [target_file]
+    end
 
-    # In a proper photo these are available and probably used by Google photos
-    # modifydate
-    # createdate
-    # datetimeoriginal
-    query = <<~SQL
-      SELECT
-        datetime(createDate + strftime('%s','2001-01-01'), 'unixepoch') as createDate,
-        datetime(fileModificationDate + strftime('%s','2001-01-01'), 'unixepoch') as fileModificationDate,
-        datetime(imageDate + strftime('%s','2001-01-01'), 'unixepoch') as imageDate,
-        datetime(fileCreationDate + strftime('%s','2001-01-01'), 'unixepoch') as fileCreationDate,
-        originalFileSize
+    final_result = {}
 
-      FROM
-        RKMaster
+    file_names.each do |file|
+      next unless File.exists?(file)
 
-      WHERE
-        -- fileName = 'DSC_0407.JPG'
-        -- fileName = 'IMG_7314.JPG'
-        -- originalFileSize = 6669176
+      original_file_size = File.size(file)
+      normalised_file_name = File.basename(file)
 
-        fileName = ? AND originalFileSize = ?
-    SQL
+      # NOTE: after exporting photos from Apple photo
+      # the photos can have a suffix when the name is the same, like
+      # IMG, IMG (1), IMG (2)
+      # we need to remove this added suffix because this is not
+      # the way it is stored in the library database
+      normalised_file_name = normalised_file_name.gsub(/ \(\d+\)/, "")
 
-    database.execute(query, normalised_file_name, original_file_size)
+      # NOTE: strange date conversion
+      # this is due to apple date base starting at 2001-01-01
+      # https://apple.stackexchange.com/questions/114168/dates-format-in-messages-chat-db
+
+      # In a proper photo these are available and probably used by photo software
+      # modifydate
+      # createdate
+      # datetimeoriginal
+      query = <<~SQL
+        SELECT
+          datetime(createDate + strftime('%s','2001-01-01'), 'unixepoch') as createDate,
+          datetime(fileModificationDate + strftime('%s','2001-01-01'), 'unixepoch') as fileModificationDate,
+          datetime(imageDate + strftime('%s','2001-01-01'), 'unixepoch') as imageDate,
+          datetime(fileCreationDate + strftime('%s','2001-01-01'), 'unixepoch') as fileCreationDate,
+          originalFileSize
+
+        FROM
+          RKMaster
+
+        WHERE
+          -- fileName = 'DSC_0407.JPG'
+          -- fileName = 'IMG_7314.JPG'
+          -- originalFileSize = 6669176
+
+          fileName = ? AND originalFileSize = ?
+      SQL
+
+      result = database.execute(query, normalised_file_name, original_file_size)
+
+      if result.length > 0
+        final_result = result
+        break
+      end
+    end
+
+    final_result
   end
 end
