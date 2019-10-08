@@ -41,7 +41,10 @@ class PhotoFix
       end
     end
 
+
     command 'apple' do |c|
+      library_default = "#{Dir.home}/Pictures/Photos Library.photoslibrary/database/photos.db"
+
       c.syntax = 'photofix apple source'
       c.summary = 'Fix timestamps from photos downloaded from Apple Photos'
       c.description = <<~DESC
@@ -52,18 +55,29 @@ class PhotoFix
         the Apple Photos library database (sqlite) and exiftool.
       DESC
       c.example 'Update Apple Photos exported photos in ~/some-folder', 'photofix apple ~/some-folder'
-      c.option '--dest STRING', String, 'Directory where the images are copied to'
+      c.option '--dest STRING', String, <<~DESC
+        Directory where the images are copied to.
+        Default: source/FINAL
+      DESC
+      c.option '--library STRING', String, <<~DESC
+        Location of the Apple Photos library.
+        Default: #{library_default}
+      DESC
+
       c.action do |args, options|
         if args.length != 1
           raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 1"
         end
 
         source = args.first
-        options.default dest: File.join(source, 'FINAL')
+        options.default(
+          dest: File.join(source, 'FINAL'),
+          library: library_default
+        )
 
         require_relative './fix_apple_timestamp'
 
-        fixer = FixAppleTimestamp.new(source, options.dest)
+        fixer = FixAppleTimestamp.new(source, options.dest, options.library)
         fixer.call
       end
     end

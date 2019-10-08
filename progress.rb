@@ -22,7 +22,7 @@ class Progress < Concurrent::Actor::Context
       progress_bar.log("[INFO][#{message.fetch(:tag)}]: #{message.fetch(:value)}")
 
     when :error
-      progress_bar.log("[ERROR][#{message.fetch(:tag)}]: #{message.fetch(:value)}")
+      progress_bar.log("[ERROR]: #{message.fetch(:value)}")
 
     when :finish
       progress_bar.finish
