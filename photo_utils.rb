@@ -3,6 +3,7 @@ require 'oj'
 require 'fileutils'
 require 'pathname'
 require 'posix/spawn'
+require 'shellwords'
 
 class PhotoUtils
   class << self
@@ -43,7 +44,7 @@ class PhotoUtils
       end
 
       # change media file
-      update_command = "exiftool '#{media_file}'"
+      update_command = "exiftool #{Shellwords.escape(media_file)}"
 
       new_exif_attributes.each do |name, value|
         update_command += %( -#{name}="#{value}")
@@ -62,7 +63,7 @@ class PhotoUtils
           updated_extension_media_file = File.join(dir_name, new_base_name)
           FileUtils.move(media_file, updated_extension_media_file)
 
-          update_command = "exiftool '#{updated_extension_media_file}'"
+          update_command = "exiftool #{Shellwords.escape(updated_extension_media_file)}"
 
           new_exif_attributes.each do |name, value|
             update_command += %( -#{name}="#{value}")
@@ -85,7 +86,7 @@ class PhotoUtils
 
           if child.status.exitstatus.zero?
             # copy all tags from original
-            copy_command = "exiftool -tagsfromfile '#{media_file}' -all:all '#{temp_copy}' -P -overwrite_original"
+            copy_command = "exiftool -tagsfromfile #{Shellwords.escape(media_file)} -all:all #{Shellwords.escape(temp_copy)} -P -overwrite_original"
             child = POSIX::Spawn::Child.new(copy_command)
 
             if child.status.exitstatus.zero?
@@ -111,7 +112,7 @@ class PhotoUtils
             # Remove the TEMP file
             FileUtils.remove(temp_copy)
 
-            update_command = "exiftool '#{media_file}'"
+            update_command = "exiftool #{Shellwords.escape(media_file)}"
 
             basic_exif_attributes.each do |name, value|
               update_command += %( -#{name}="#{value}")
