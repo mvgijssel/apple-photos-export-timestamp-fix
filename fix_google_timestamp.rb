@@ -150,10 +150,16 @@ class FixGoogleTimestamp
 
       albums_with_missing_data = albums_with_missing_data.sort_by { |_key, value| -value.length }.to_h
 
-      message = "Albums with missing json files:\n"
+      message = "Total missing files #{media_files_missing_data.length}:\n"
+      message += "Albums with missing json files:\n"
       albums_with_missing_data.each do |album, data|
         message += "  #{album}: #{data.length}\n"
-        message += "    #{data}\n\n"
+
+        data.each do |data_item|
+          message += "    #{data_item}\n"
+        end
+
+        message += "\n"
       end
 
       raise message
