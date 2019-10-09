@@ -61,3 +61,5 @@ photos.db
 *.db-shm
 *.db-wal
 *.swp
+
+duplicates.json

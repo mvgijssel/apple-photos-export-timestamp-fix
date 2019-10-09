@@ -96,3 +96,23 @@ cd ~/Desktop/photofix
 ```
 ./photofix google ~/Desktop/photofix/images --dest ~/Desktop/photofix/final
 ```
+
+# Remove duplicates
+
+1. Install and run `duplicate-images` tool https://github.com/philipbl/duplicate-images
+
+2. Copy the duplicates to the `photofix` directory
+```
+python duplicate_finder.py find --print > ~/Desktop/photofix/duplicates.json
+```
+
+3. Change the current working directory
+```
+cd ~/Desktop/photofix
+```
+
+4. Run the de-duplication script. The argument given indicates the folder from
+   which the duplicates **should not** be removed.
+```
+./photofix duplicates ~/Desktop/photofix/originals --trash ~/Desktop/photofix/trash 
+```

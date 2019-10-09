@@ -43,7 +43,6 @@ class PhotoFix
       end
     end
 
-
     command 'apple' do |c|
       library_default = "#{Dir.home}/Pictures/Photos Library.photoslibrary/database/photos.db"
 
@@ -80,6 +79,40 @@ class PhotoFix
         require_relative './fix_apple_timestamp'
 
         fixer = FixAppleTimestamp.new(source, options.dest, options.library, @verbose)
+        fixer.call
+      end
+    end
+
+    command 'duplicates' do |c|
+      c.syntax = 'photofix duplicates path/to/originals'
+      c.summary = 'Remove duplicates from `duplicate-images` results.'
+      c.description = <<~DESC
+        After running `duplicate-images` we want to have some control over
+        which images will be removed. This script makes sure images are never
+        removed from the "originals" folder and will keep the original folder
+        structure intact to make restoring easier.
+      DESC
+      c.example 'Remove duplicates but maintain photos in `~/Desktop/photofix/originals`',
+                'photofix duplicates ~/Desktop/photofix/originals --trash ~/Desktop/photofix/trash'
+      c.option '--trash STRING', String, <<~DESC
+        Directory used to move the deleted images to.
+        Default: ./Trash
+      DESC
+
+      c.action do |args, options|
+        if args.length != 1
+          raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 1"
+        end
+
+        keep_folder = args.first
+
+        options.default(
+          trash: File.path('./Trash'),
+        )
+
+        require_relative './fix_duplicates'
+
+        fixer = FixDuplicates.new(keep_folder, options.trash, @verbose)
         fixer.call
       end
     end
