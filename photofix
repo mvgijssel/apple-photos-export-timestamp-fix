@@ -98,21 +98,34 @@ class PhotoFix
         Directory used to move the deleted images to.
         Default: ./Trash
       DESC
+      c.option '--data STRING', String, <<~DESC
+        File containing `duplicates-images` printed output
+        Default: ./duplicates.json
+      DESC
+      c.option '--keep ARRAY', Array, <<~DESC
+        Comma separated list of items to never delete
+        Default: []
+      DESC
+      c.option '--delete ARRAY', Array, <<~DESC
+        Comma separated list of items to delete
+        Default: []
+      DESC
 
       c.action do |args, options|
-        if args.length != 1
-          raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 1"
+        if args.length != 0
+          raise Commander::Runner::InvalidCommandError, "Invalid number of arguments #{args.length}, expected 0"
         end
-
-        keep_folder = args.first
 
         options.default(
           trash: File.path('./Trash'),
+          data: File.path('./duplicates.json'),
+          keep: [],
+          delete: [],
         )
 
         require_relative './fix_duplicates'
 
-        fixer = FixDuplicates.new(keep_folder, options.trash, @verbose)
+        fixer = FixDuplicates.new(options.keep, options.delete, options.trash, options.data, @verbose)
         fixer.call
       end
     end

@@ -20,6 +20,19 @@ class PhotoUtils
       new_file
     end
 
+    def move_file(file, source, destination)
+      # Translate
+      # source: /some/folder
+      # image: /some/folder/image.jpg
+      # relative: image.jpg
+      relative_path = Pathname.new(file).relative_path_from Pathname.new(source)
+      new_file = File.join(destination, relative_path)
+      new_file_directory = File.dirname(new_file)
+      FileUtils.mkdir_p new_file_directory
+      FileUtils.move(file, new_file)
+      new_file
+    end
+
     def update_timestamps(media_file, create_timestamp, modify_timestamp)
       file_extension = File.extname(media_file)
 

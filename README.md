@@ -114,5 +114,5 @@ cd ~/Desktop/photofix
 4. Run the de-duplication script. The argument given indicates the folder from
    which the duplicates **should not** be removed.
 ```
-./photofix duplicates ~/Desktop/photofix/originals --trash ~/Desktop/photofix/trash 
+./photofix duplicates --trash ~/Desktop/dupes/removed --data ~/Desktop/dupes/duplicates.json --keep ~/Desktop/dupes/apple --delete ~/Desktop/dupes/google
 ```
