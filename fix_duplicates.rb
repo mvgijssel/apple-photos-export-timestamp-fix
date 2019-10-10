@@ -32,6 +32,9 @@ class FixDuplicates
     json.gsub!(/'(.*?)'/, '"\1"')
 
     duplicate_data = JSON.parse(json)
+    total_deleted_files = 0
+    total_deleted_associated_mov_files = 0
+    total_skipped_files = 0
 
     duplicate_data.each do |duplicate_data_item|
       items = duplicate_data_item.fetch('items')
@@ -49,21 +52,28 @@ class FixDuplicates
 
           if File.exist?(file_name)
             deleted_file = PhotoUtils.move_file file_name, delete_directory, trash_directory
-            puts "Moving: #{file_name} to #{deleted_file}"
+            total_deleted_files += 1
+            puts "Moving: #{file_name} to #{deleted_file}" if verbose
 
             live_photo_mov_file = PhotoUtils.update_extension(file_name, 'mov')
 
-            if File.exists?(live_photo_mov_file)
+            if File.exist?(live_photo_mov_file)
               deleted_file = PhotoUtils.move_file live_photo_mov_file, delete_directory, trash_directory
-              puts "Moving: #{live_photo_mov_file} to #{deleted_file}"
+              total_deleted_associated_mov_files += 1
+              puts "Moving: #{live_photo_mov_file} to #{deleted_file}" if verbose
             end
           else
-            puts "Skipping: #{file_name} - does not exist"
+            total_skipped_files += 1
+            puts "Skipping: #{file_name} - does not exist" if verbose
           end
 
           break
         end
       end
     end
+
+    puts "Deleted (#{total_deleted_files}) duplicate files"
+    puts "Deleted (#{total_deleted_associated_mov_files}) .mov files"
+    puts "Skipped (#{total_skipped_files}) non existing files"
   end
 end
