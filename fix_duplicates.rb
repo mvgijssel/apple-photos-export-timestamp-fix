@@ -48,8 +48,15 @@ class FixDuplicates
           next unless file_name.start_with? delete_directory
 
           if File.exist?(file_name)
-            new_file = PhotoUtils.move_file file_name, delete_directory, trash_directory
-            puts "Moving: #{file_name} to #{new_file}"
+            deleted_file = PhotoUtils.move_file file_name, delete_directory, trash_directory
+            puts "Moving: #{file_name} to #{deleted_file}"
+
+            live_photo_mov_file = PhotoUtils.update_extension(file_name, 'mov')
+
+            if File.exists?(live_photo_mov_file)
+              deleted_file = PhotoUtils.move_file live_photo_mov_file, delete_directory, trash_directory
+              puts "Moving: #{live_photo_mov_file} to #{deleted_file}"
+            end
           else
             puts "Skipping: #{file_name} - does not exist"
           end
