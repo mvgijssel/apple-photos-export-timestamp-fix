@@ -20,6 +20,12 @@ class PhotoUtils
       new_file
     end
 
+    def update_extension(file, new_extension)
+      dir_name = File.dirname(file)
+      new_base_name = File.basename(File.basename(file), File.extname(file)) + ".#{new_extension}"
+      File.join(dir_name, new_base_name)
+    end
+
     def move_file(file, source, destination)
       # Translate
       # source: /some/folder
@@ -71,9 +77,7 @@ class PhotoUtils
           # Rename the file to jpg, as indicated by the error message
           # and try to update the file again
 
-          dir_name = File.dirname(media_file)
-          new_base_name = File.basename(File.basename(media_file), File.extname(media_file)) + '.jpg'
-          updated_extension_media_file = File.join(dir_name, new_base_name)
+          update_extension media_file, 'jpg'
           FileUtils.move(media_file, updated_extension_media_file)
 
           update_command = "exiftool #{Shellwords.escape(updated_extension_media_file)}"

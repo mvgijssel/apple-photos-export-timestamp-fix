@@ -128,15 +128,13 @@ class FixAppleTimestamp
 
     # .mov information might be stored in .jpg or .heic with the same name
     file_names = if file_extension.downcase == '.mov'
-      file_directory = File.dirname(target_file)
-      new_base_name = File.basename(File.basename(target_file), File.extname(target_file))
 
       [
         target_file,
-        File.join(file_directory, new_base_name) + '.jpg',
-        File.join(file_directory, new_base_name) + '.JPG',
-        File.join(file_directory, new_base_name) + '.heic',
-        File.join(file_directory, new_base_name) + '.HEIC',
+        update_extension(target_file, 'jpg'),
+        update_extension(target_file, 'JPG'),
+        update_extension(target_file, 'heic'),
+        update_extension(target_file, 'HEIC'),
       ]
     else
       [target_file]
