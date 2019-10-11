@@ -99,7 +99,18 @@ cd ~/Desktop/photofix
 
 # Remove duplicates
 
-1. Install and run `duplicate-images` tool https://github.com/philipbl/duplicate-images
+## dupeGuru
+1. Install `dupeGuru` tool https://dupeguru.voltaicideas.net
+
+## Cleanup
+1. Remove some leftover empty folders
+
+```
+find ~/Desktop/dupes -type d -empty -print -delete
+```
+
+## duplicate-images
+1. Install `duplicate-images` tool https://github.com/philipbl/duplicate-images
 
 2. Copy the duplicates to the `photofix` directory
 ```
@@ -116,3 +127,4 @@ cd ~/Desktop/photofix
 ```
 ./photofix duplicates --trash ~/Desktop/dupes/removed --data ~/Desktop/dupes/duplicates.json --keep ~/Desktop/dupes/apple --delete ~/Desktop/dupes/google
 ```
+
