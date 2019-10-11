@@ -17,19 +17,16 @@ class FixDuplicates
 
   def call
     lines = File.readlines(duplicate_data_file)
-    lines = lines.reject do |line|
-      line.strip!
 
-      line.include?('Started database...') ||
-        line.include?('Number of duplicates:') ||
-        line.include?('Stopped database...')
+    json = ''
+
+    lines.each_with_index do |line, index|
+      next if line.include?('Started database...') ||
+              line.include?('Number of duplicates:') ||
+              line.include?('Stopped database...')
+
+      json << line.scrub
     end
-
-    json = lines.join("")
-
-    # Remove escaped single quotes used in file paths with quotes
-    json.gsub!(/''/, '')
-    json.gsub!(/'(.*?)'/, '"\1"')
 
     duplicate_data = JSON.parse(json)
     total_deleted_files = 0
