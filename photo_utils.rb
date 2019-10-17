@@ -77,7 +77,7 @@ class PhotoUtils
           # Rename the file to jpg, as indicated by the error message
           # and try to update the file again
 
-          update_extension media_file, 'jpg'
+          updated_extension_media_file = update_extension media_file, 'jpg'
           FileUtils.move(media_file, updated_extension_media_file)
 
           update_command = "exiftool #{Shellwords.escape(updated_extension_media_file)}"

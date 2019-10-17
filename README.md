@@ -79,7 +79,7 @@ for file in $(ls); do; echo "Processing $file"; unzip $file -d "unzip-$file"; do
 8. Merge all the unzipped folders
 ```
 mkdir merged
-for folder in $(ls | grep "unzip-"); do; echo "Merging $folder"; cp -R $folder/Takeout/Google\ Foto_s/* merged/; done
+for folder in $(ls | grep "unzip-"); do; echo "Merging $folder"; cp -lR $folder/Takeout/Google\ Foto_s/* merged/; done
 ```
 
 9. Remove the unzipped folders
@@ -108,23 +108,3 @@ cd ~/Desktop/photofix
 ```
 find ~/Desktop/dupes -type d -empty -print -delete
 ```
-
-## duplicate-images
-1. Install `duplicate-images` tool https://github.com/philipbl/duplicate-images
-
-2. Copy the duplicates to the `photofix` directory
-```
-python duplicate_finder.py find --print > ~/Desktop/photofix/duplicates.json
-```
-
-3. Change the current working directory
-```
-cd ~/Desktop/photofix
-```
-
-4. Run the de-duplication script. The argument given indicates the folder from
-   which the duplicates **should not** be removed.
-```
-./photofix duplicates --trash ~/Desktop/dupes/removed --data ~/Desktop/dupes/duplicates.json --keep ~/Desktop/dupes/apple --delete ~/Desktop/dupes/google
-```
-
