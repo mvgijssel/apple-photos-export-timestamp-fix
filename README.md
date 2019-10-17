@@ -20,7 +20,7 @@ into the photo EXIF data.
 git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/Desktop/photofix
 ```
 
-2. Export unmodified originals from Apple Photos and save into `~/Desktop/photofix/images`
+2. Export unmodified originals from Apple Photos and save into `~/Desktop/photofix/images/apple`
 
 <img src="./export-apple-photos.png" alt="Export Apple Photos" /> 
 
@@ -31,7 +31,7 @@ git clone https://github.com/mvgijssel/apple-photos-export-timestamp-fix.git ~/D
 4. Run this script
 ```
 cd  ~/Desktop/photofix
-./photofix apple ./images
+./photofix apple ./images/apple --dest ./images/apple/final
 ```
 
 > NOTE: assuming the iCloud Photos library is located at ~/Pictures/Photos Library.photoslibrary
@@ -63,11 +63,11 @@ bundle install
 multiple archives. Try to make the archives as large as possible (50GB), smaller archives can 
 miss necessary json information.
 
-5. Move all the .zip archives to a single folder: `~/Desktop/photofix/images`
+5. Move all the .zip archives to a single folder: `~/Desktop/photofix/images/google`
 
 6. Navigate to the images folder
 ```
-cd ~/Desktop/photofix/images
+cd ~/Desktop/photofix/images/google
 ```
 
 7. Unzip all the archives using the following command 
@@ -94,7 +94,7 @@ cd ~/Desktop/photofix
 
 11. Run script to fix google photo timestamps and export to `~/Desktop/photofix/final`
 ```
-./photofix google ~/Desktop/photofix/images --dest ~/Desktop/photofix/final
+./photofix google ~/Desktop/photofix/images/google --dest ~/Desktop/photofix/google/final
 ```
 
 # Remove duplicates
@@ -102,9 +102,13 @@ cd ~/Desktop/photofix
 ## dupeGuru
 1. Install `dupeGuru` tool https://dupeguru.voltaicideas.net
 
-## Cleanup
+
+# Cleanup
+
 1. Remove some leftover empty folders
 
 ```
-find ~/Desktop/dupes -type d -empty -print -delete
+find ~/Desktop/images -type d -empty -print -delete
 ```
+
+2. Delete photos from Google Photo using https://github.com/mrishab/google-photos-delete-tool
